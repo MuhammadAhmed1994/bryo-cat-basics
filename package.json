@@ -1,0 +1,21 @@
+{
+  "name": "nbryo",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspaces --if-present",
+    "dev:api": "npm run dev -w @nbryo/api",
+    "dev:web": "npm run dev -w @nbryo/web",
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test -w @nbryo/api && npm run test -w @nbryo/web",
+    "test:api": "npm run test -w @nbryo/api",
+    "test:e2e": "npm run test:e2e -w @nbryo/api",
+    "test:web": "npm run test -w @nbryo/web",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "migration:run": "npm run migration:run -w @nbryo/api"
+  }
+}
