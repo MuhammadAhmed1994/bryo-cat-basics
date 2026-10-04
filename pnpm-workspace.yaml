@@ -1,0 +1,11 @@
+# pnpm workspace definition. The repo also carries package-lock.json for npm;
+# both package managers resolve the same per-app package.json files.
+packages:
+  - 'apps/*'
+  - 'packages/*'
+
+# pnpm 10+ refuses to run dependency build scripts and exits 1 with
+# ERR_PNPM_IGNORED_BUILDS. @nestjs/core's postinstall only prints an
+# OpenCollective funding notice, so allow-listing it keeps CI installs green.
+allowBuilds:
+  '@nestjs/core': true
