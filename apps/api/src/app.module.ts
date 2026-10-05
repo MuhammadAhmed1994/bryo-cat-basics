@@ -9,6 +9,7 @@ import { UsersModule } from './users/users.module';
 import { CompaniesModule } from './companies/companies.module';
 import { MailModule } from './mail/mail.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
+import { LocationsModule } from './locations/locations.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
     AuthModule,
     UsersModule,
     CompaniesModule,
+    LocationsModule,
   ],
   // Spec 2.1.4 — everything is protected unless explicitly marked @Public().
   providers: [{ provide: APP_GUARD, useClass: JwtAuthGuard }],
