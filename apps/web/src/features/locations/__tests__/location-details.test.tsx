@@ -1,0 +1,1 @@
+import './location-details.spec'
