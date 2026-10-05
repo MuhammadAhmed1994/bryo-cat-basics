@@ -14,6 +14,6 @@ import { COMPANY_USAGE_CHECKERS } from './company-usage.checker';
     { provide: COMPANY_USAGE_CHECKERS, useValue: [] },
   ],
   controllers: [CompaniesController],
-  exports: [CompaniesService],
+  exports: [CompaniesService, COMPANY_USAGE_CHECKERS],
 })
 export class CompaniesModule {}
