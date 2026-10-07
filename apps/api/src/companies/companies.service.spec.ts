@@ -138,6 +138,20 @@ describe('CompaniesService', () => {
       repo.findOne.mockResolvedValue(null);
       await expect(service.findOne('missing')).rejects.toThrow(NotFoundException);
     });
+
+    it('loads the company with its associated locations ordered by name', async () => {
+      const company = makeCompany({ locations: [{ name: 'North' }, { name: 'South' }] as Company['locations'] });
+      repo.findOne.mockResolvedValue(company);
+
+      const result = await service.findOne(company.id);
+
+      expect(repo.findOne).toHaveBeenCalledWith({
+        where: { id: company.id },
+        relations: { locations: true },
+        order: { locations: { name: 'ASC' } },
+      });
+      expect(result.locations).toEqual(company.locations);
+    });
   });
 
   describe('update', () => {
@@ -178,6 +192,20 @@ describe('CompaniesService', () => {
 
       await expect(service.remove('company-uuid')).rejects.toThrow(BadRequestException);
       expect(repo.remove).not.toHaveBeenCalled();
+    });
+
+    it('[AC-16] prevents deleting a company with locations and leaves it retrievable', async () => {
+      const existing = makeCompany({
+        locations: [{ id: 'location-uuid', name: 'North Clinic' }] as Company['locations'],
+      });
+      repo.findOne.mockResolvedValue(existing);
+
+      await expect(service.remove(existing.id)).rejects.toThrow(BadRequestException);
+      expect(repo.remove).not.toHaveBeenCalled();
+
+      const retrieved = await service.findOne(existing.id);
+      expect(retrieved).toBe(existing);
+      expect(retrieved.locations).toEqual(existing.locations);
     });
   });
 
