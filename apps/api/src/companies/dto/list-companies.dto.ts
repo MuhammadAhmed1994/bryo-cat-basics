@@ -2,11 +2,13 @@ import { IsIn, IsOptional, IsString, MaxLength } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { PaginationQueryDto } from '../../common/dto/pagination.dto';
 
+export type CompanyListStatus = 'ALL' | 'ACTIVE' | 'INACTIVE';
+
 /** Spec 2.8.7 — status chips (All / Inactive), country dropdown, name sort. */
 export class ListCompaniesDto extends PaginationQueryDto {
   @IsOptional()
   @IsIn(['ALL', 'ACTIVE', 'INACTIVE'])
-  status?: 'ALL' | 'ACTIVE' | 'INACTIVE';
+  status?: CompanyListStatus;
 
   @IsOptional()
   @IsString()

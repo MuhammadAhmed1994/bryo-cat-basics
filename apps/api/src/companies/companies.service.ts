@@ -12,7 +12,7 @@ import { Paginated, resolvePaging } from '../common/dto/pagination.dto';
 import { Address, Company } from './entities/company.entity';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
-import { ListCompaniesDto } from './dto/list-companies.dto';
+import { CompanyListStatus, ListCompaniesDto } from './dto/list-companies.dto';
 import { AddressDto } from './dto/company-address.dto';
 import { COMPANY_USAGE_CHECKERS, CompanyUsageChecker } from './company-usage.checker';
 
@@ -147,8 +147,8 @@ export class CompaniesService {
       qb.andWhere('company.nameNormalized LIKE :search', { search: `%${search}%` });
     }
 
-    const status = query.status ?? 'ACTIVE';
-    if (status !== 'ALL') {
+    const status: CompanyListStatus = query.status ?? 'ACTIVE';
+    if (status === 'ACTIVE' || status === 'INACTIVE') {
       qb.andWhere('company.isActive = :isActive', { isActive: status === 'ACTIVE' });
     }
 
