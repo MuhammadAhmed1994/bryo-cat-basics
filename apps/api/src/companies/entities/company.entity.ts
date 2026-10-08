@@ -1,5 +1,14 @@
-import { Column, Entity, Index } from 'typeorm';
+import { randomUUID } from 'crypto';
+import {
+  BeforeInsert,
+  Column,
+  Entity,
+  Index,
+  OneToMany,
+  PrimaryColumn,
+} from 'typeorm';
 import { AuditedEntity } from '../../common/entities/audited.entity';
+import { Location } from '../../locations/entities/location.entity';
 
 /** Spec 2.8.1 — billing and shipping share the same shape and validations. */
 export class Address {
@@ -24,6 +33,16 @@ export class Address {
 
 @Entity('companies')
 export class Company extends AuditedEntity {
+  @PrimaryColumn({ type: 'varchar', length: 36 })
+  id!: string;
+
+  @BeforeInsert()
+  generateId(): void {
+    if (!this.id) {
+      this.id = randomUUID();
+    }
+  }
+
   @Column({ type: 'varchar', length: 100 })
   name!: string;
 
@@ -56,4 +75,7 @@ export class Company extends AuditedEntity {
   /** Spec 2.8.5 — new companies are Active; deactivation hides them from new transactions. */
   @Column({ type: 'boolean', default: true })
   isActive!: boolean;
+
+  @OneToMany(() => Location, (location) => location.company)
+  locations!: Location[];
 }
