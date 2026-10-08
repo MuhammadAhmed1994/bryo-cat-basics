@@ -1,5 +1,6 @@
-import { Column, Entity, Index } from 'typeorm';
+import { Column, Entity, Index, OneToMany } from 'typeorm';
 import { AuditedEntity } from '../../common/entities/audited.entity';
+import { Location } from '../../locations/entities/location.entity';
 
 /** Spec 2.8.1 — billing and shipping share the same shape and validations. */
 export class Address {
@@ -56,4 +57,7 @@ export class Company extends AuditedEntity {
   /** Spec 2.8.5 — new companies are Active; deactivation hides them from new transactions. */
   @Column({ type: 'boolean', default: true })
   isActive!: boolean;
+
+  @OneToMany(() => Location, (location) => location.company)
+  locations!: Location[];
 }
