@@ -16,6 +16,24 @@ import { ListCompaniesDto } from './dto/list-companies.dto';
 import { AddressDto } from './dto/company-address.dto';
 import { COMPANY_USAGE_CHECKERS, CompanyUsageChecker } from './company-usage.checker';
 
+export interface CompanyLocationDetails {
+  id: string;
+  name: string;
+  nameNormalized: string;
+  phone: string | null;
+  companyId: string | null;
+  country: string;
+  stateProvince: string | null;
+  city: string | null;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CompanyDetails extends Company {
+  locations: CompanyLocationDetails[];
+}
+
 const EMPTY_ADDRESS: Address = {
   line1: null,
   line2: null,
@@ -76,10 +94,18 @@ export class CompaniesService {
     return this.companies.save(company);
   }
 
-  async findOne(id: string): Promise<Company> {
+  async findOne(id: string): Promise<CompanyDetails> {
     const company = await this.companies.findOne({ where: { id } });
     if (!company) throw new NotFoundException('Company not found.');
-    return company;
+
+    // Use the table directly rather than a Company-side TypeORM relation. This
+    // keeps Company metadata usable when the Locations module is not loaded.
+    const locations = (await this.companies.manager.query(
+      'SELECT location.* FROM "locations" location WHERE location."companyId" = $1 ORDER BY location."name" ASC',
+      [id],
+    )) as CompanyLocationDetails[];
+
+    return { ...company, locations };
   }
 
   async update(id: string, dto: UpdateCompanyDto, actorId: string): Promise<Company> {
@@ -114,10 +140,17 @@ export class CompaniesService {
   async remove(id: string): Promise<void> {
     const company = await this.findOne(id);
 
-    const counts = await Promise.all(
-      (this.usageCheckers ?? []).map((checker) => checker.countForCompany(id)),
-    );
-    if (counts.some((count) => count > 0)) {
+    const [locationCounts, checkerCounts] = await Promise.all([
+      this.companies.manager.query(
+        'SELECT COUNT(*) AS count FROM "locations" WHERE "companyId" = $1',
+        [id],
+      ) as Promise<Array<{ count: string | number }>>,
+      Promise.all(
+        (this.usageCheckers ?? []).map((checker) => checker.countForCompany(id)),
+      ),
+    ]);
+    const hasLocations = Number(locationCounts[0]?.count ?? 0) > 0;
+    if (hasLocations || checkerCounts.some((count) => count > 0)) {
       throw new BadRequestException(
         'This company cannot be deleted because it is being used by existing records.',
       );

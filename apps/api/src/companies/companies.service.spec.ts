@@ -11,6 +11,7 @@ type RepoMock = {
   save: jest.Mock;
   remove: jest.Mock;
   createQueryBuilder: jest.Mock;
+  manager: { query: jest.Mock };
 };
 
 const ACTOR = 'actor-uuid';
@@ -57,6 +58,11 @@ describe('CompaniesService', () => {
       save: jest.fn((entity) => Promise.resolve(Object.assign(entity, { id: entity.id ?? 'new-uuid' }))),
       remove: jest.fn().mockResolvedValue(undefined),
       createQueryBuilder: jest.fn(() => qb),
+      manager: {
+        query: jest.fn().mockImplementation((sql: string) =>
+          sql.includes('COUNT(*)') ? Promise.resolve([{ count: '0' }]) : Promise.resolve([]),
+        ),
+      },
     };
     usage = { label: 'animals', countForCompany: jest.fn().mockResolvedValue(0) };
 
@@ -169,7 +175,7 @@ describe('CompaniesService', () => {
 
       await service.remove(existing.id);
 
-      expect(repo.remove).toHaveBeenCalledWith(existing);
+      expect(repo.remove).toHaveBeenCalledWith(expect.objectContaining({ id: existing.id }));
     });
 
     it('refuses to delete a company that is in use (spec 2.8.4)', async () => {
@@ -178,6 +184,34 @@ describe('CompaniesService', () => {
 
       await expect(service.remove('company-uuid')).rejects.toThrow(BadRequestException);
       expect(repo.remove).not.toHaveBeenCalled();
+    });
+
+    it('[AC-16] refuses deletion with associated locations and keeps the company retrievable', async () => {
+      const company = makeCompany();
+      const location = {
+        id: 'location-uuid',
+        name: 'Acme North',
+        nameNormalized: 'acme north',
+        phone: null,
+        companyId: company.id,
+        country: 'Australia',
+        stateProvince: null,
+        city: null,
+        isActive: true,
+        createdAt: new Date('2025-01-01T00:00:00.000Z'),
+        updatedAt: new Date('2025-01-01T00:00:00.000Z'),
+      };
+      repo.findOne.mockResolvedValue(company);
+      repo.manager.query.mockImplementation((sql: string) =>
+        sql.includes('COUNT(*)') ? Promise.resolve([{ count: '1' }]) : Promise.resolve([location]),
+      );
+
+      await expect(service.remove(company.id)).rejects.toThrow(BadRequestException);
+      expect(repo.remove).not.toHaveBeenCalled();
+
+      const stillThere = await service.findOne(company.id);
+      expect(stillThere.id).toBe(company.id);
+      expect(stillThere.locations).toEqual([location]);
     });
   });
 
