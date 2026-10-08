@@ -201,6 +201,18 @@ describe('CompaniesService', () => {
       });
     });
 
+    it('[AC-12] filters the company choices to active records when requested', async () => {
+      const activeCompany = makeCompany({ isActive: true });
+      qb.getManyAndCount.mockResolvedValue([[activeCompany], 1]);
+
+      const result = await service.findAll({ status: 'ACTIVE' });
+
+      expect(qb.andWhere).toHaveBeenCalledWith('company.isActive = :isActive', {
+        isActive: true,
+      });
+      expect(result.data).toEqual([activeCompany]);
+    });
+
     it('filters to inactive companies when asked', async () => {
       await service.findAll({ status: 'INACTIVE' });
 
