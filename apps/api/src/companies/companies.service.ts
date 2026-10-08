@@ -77,7 +77,11 @@ export class CompaniesService {
   }
 
   async findOne(id: string): Promise<Company> {
-    const company = await this.companies.findOne({ where: { id } });
+    const company = await this.companies.findOne({
+      where: { id },
+      relations: { locations: true },
+      order: { locations: { name: 'ASC' } },
+    });
     if (!company) throw new NotFoundException('Company not found.');
     return company;
   }
@@ -113,6 +117,12 @@ export class CompaniesService {
   /** Spec 2.8.4 — blocked while any other record still points at the company. */
   async remove(id: string): Promise<void> {
     const company = await this.findOne(id);
+
+    if (company.locations?.length) {
+      throw new BadRequestException(
+        'This company cannot be deleted because it has associated locations.',
+      );
+    }
 
     const counts = await Promise.all(
       (this.usageCheckers ?? []).map((checker) => checker.countForCompany(id)),
