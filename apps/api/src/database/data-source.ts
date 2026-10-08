@@ -5,8 +5,9 @@ import { User } from '../users/entities/user.entity';
 import { AuthToken } from '../auth/entities/auth-token.entity';
 import { Session } from '../auth/entities/session.entity';
 import { Company } from '../companies/entities/company.entity';
+import { Location } from '../locations/entities/location.entity';
 
-export const ENTITIES = [User, AuthToken, Session, Company];
+export const ENTITIES = [User, AuthToken, Session, Company, Location];
 
 /** Used by the TypeORM CLI for migrations. */
 export default new DataSource({
