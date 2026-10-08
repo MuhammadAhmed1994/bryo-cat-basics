@@ -1,0 +1,15 @@
+import { Controller, Get, Query } from '@nestjs/common';
+import { Paginated } from '../common/dto/pagination.dto';
+import { ListLocationsDto } from './dto/list-locations.dto';
+import { Location } from './entities/location.entity';
+import { LocationsQueryService } from './locations-query.service';
+
+@Controller('locations')
+export class LocationsQueryController {
+  constructor(private readonly locationsQuery: LocationsQueryService) {}
+
+  @Get()
+  list(@Query() query: ListLocationsDto): Promise<Paginated<Location>> {
+    return this.locationsQuery.findAll(query);
+  }
+}
