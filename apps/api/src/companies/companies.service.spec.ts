@@ -201,6 +201,14 @@ describe('CompaniesService', () => {
       });
     });
 
+    it('[AC-12] filters company choices to active records', async () => {
+      await service.findAll({ status: 'ACTIVE' });
+
+      expect(qb.andWhere).toHaveBeenCalledWith('company.isActive = :isActive', {
+        isActive: true,
+      });
+    });
+
     it('filters to inactive companies when asked', async () => {
       await service.findAll({ status: 'INACTIVE' });
 
