@@ -15,6 +15,8 @@ import { UpdateCompanyDto } from './dto/update-company.dto';
 import { ListCompaniesDto } from './dto/list-companies.dto';
 import { SetActiveDto } from '../common/dto/set-active.dto';
 import { CurrentUser, RequestUser } from '../common/decorators/current-user.decorator';
+import { Paginated } from '../common/dto/pagination.dto';
+import { Company } from './entities/company.entity';
 
 /** Spec 2.8 — Companies CRUD. */
 @Controller('companies')
@@ -30,7 +32,7 @@ export class CompaniesController {
 
   /** Spec 2.8.7 */
   @Get()
-  list(@Query() query: ListCompaniesDto) {
+  list(@Query() query: ListCompaniesDto): Promise<Paginated<Company>> {
     return this.companies.findAll(query);
   }
 

@@ -152,6 +152,10 @@ export class CompaniesService {
       qb.andWhere('company.isActive = :isActive', { isActive: status === 'ACTIVE' });
     }
 
+    if (query.activeOnly === true) {
+      qb.andWhere('company.isActive = :activeOnly', { activeOnly: true });
+    }
+
     if (query.country) {
       qb.andWhere('company.billingAddress.country = :country', {
         country: query.country,

@@ -1,4 +1,4 @@
-import { IsIn, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsBoolean, IsIn, IsOptional, IsString, MaxLength } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { PaginationQueryDto } from '../../common/dto/pagination.dto';
 
@@ -17,4 +17,11 @@ export class ListCompaniesDto extends PaginationQueryDto {
   @IsOptional()
   @IsIn(['ASC', 'DESC'])
   sortDir?: 'ASC' | 'DESC';
+
+  @IsOptional()
+  @Transform(({ value }) =>
+    value === 'true' ? true : value === 'false' ? false : value,
+  )
+  @IsBoolean()
+  activeOnly?: boolean;
 }
