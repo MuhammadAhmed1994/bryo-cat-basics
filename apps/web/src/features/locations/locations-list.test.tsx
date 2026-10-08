@@ -1,0 +1,1 @@
+import './locations-list.spec';
