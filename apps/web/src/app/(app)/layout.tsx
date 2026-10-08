@@ -40,7 +40,7 @@ const NAV: NavItem[] = [
   { label: 'Breeds', href: '/breeds', icon: <BreedIcon />, disabled: true },
   { label: 'Companies', href: '/companies', icon: <CompanyIcon /> },
   { label: 'Labs', href: '/labs', icon: <LabIcon />, disabled: true },
-  { label: 'Locations', href: '/locations', icon: <LocationIcon />, disabled: true },
+  { label: 'Locations', href: '/locations', icon: <LocationIcon /> },
 ];
 
 /** Spec 2.1.4 — the authenticated shell bounces anonymous visitors to /login. */
@@ -87,7 +87,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           </Link>
         </div>
 
-        <nav className="flex-1 overflow-y-auto pb-4">
+        <nav aria-label="Main navigation" className="flex-1 overflow-y-auto pb-4">
           {NAV.map((item) => {
             const active = pathname.startsWith(item.href);
 
