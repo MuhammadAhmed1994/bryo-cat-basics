@@ -147,9 +147,10 @@ export class CompaniesService {
       qb.andWhere('company.nameNormalized LIKE :search', { search: `%${search}%` });
     }
 
-    const status = query.status ?? 'ACTIVE';
-    if (status !== 'ALL') {
-      qb.andWhere('company.isActive = :isActive', { isActive: status === 'ACTIVE' });
+    // ALL intentionally removes the status condition; omitted status remains ACTIVE.
+    const isActive = query.status === 'ALL' ? undefined : (query.status ?? 'ACTIVE') === 'ACTIVE';
+    if (isActive !== undefined) {
+      qb.andWhere('company.isActive = :isActive', { isActive });
     }
 
     if (query.country) {
