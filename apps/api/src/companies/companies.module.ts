@@ -3,15 +3,19 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CompaniesService } from './companies.service';
 import { CompaniesController } from './companies.controller';
 import { Company } from './entities/company.entity';
-import { COMPANY_USAGE_CHECKERS } from './company-usage.checker';
+import { COMPANY_USAGE_CHECKERS, CompanyUsageChecker } from './company-usage.checker';
+import { LocationUsageChecker } from '../locations/location-usage.checker';
+import { LocationsModule } from '../locations/locations.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Company])],
+  imports: [TypeOrmModule.forFeature([Company]), LocationsModule],
   providers: [
     CompaniesService,
-    // Modules that reference companies (Locations, Animals, …) push their
-    // checkers in here so deletion stays guarded without touching the service.
-    { provide: COMPANY_USAGE_CHECKERS, useValue: [] },
+    {
+      provide: COMPANY_USAGE_CHECKERS,
+      useFactory: (locationChecker: LocationUsageChecker): CompanyUsageChecker[] => [locationChecker],
+      inject: [LocationUsageChecker],
+    },
   ],
   controllers: [CompaniesController],
   exports: [CompaniesService],
