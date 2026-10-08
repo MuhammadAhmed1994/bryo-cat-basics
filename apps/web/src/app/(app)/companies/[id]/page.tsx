@@ -7,6 +7,7 @@ import { ApiError, apiFetch } from '@/lib/api';
 import { Address, Company } from '@/lib/types';
 import { Banner, Spinner, StatusDot, Toast } from '@/components/ui';
 import { ChevronLeftIcon } from '@/components/icons';
+import { CompanyLocations } from '@/features/companies/company-locations';
 
 /** Spec 2.8.2 — Company Details, with activate/deactivate and delete. */
 export default function CompanyDetailsPage({ params }: { params: { id: string } }) {
@@ -16,6 +17,8 @@ export default function CompanyDetailsPage({ params }: { params: { id: string } 
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [locationCount, setLocationCount] = useState<number | null>(null);
+  const [locationDeleteWarning, setLocationDeleteWarning] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -56,6 +59,11 @@ export default function CompanyDetailsPage({ params }: { params: { id: string } 
 
   async function handleDelete() {
     if (!company) return;
+    if (locationCount && locationCount > 0) {
+      setConfirmingDelete(false);
+      setLocationDeleteWarning(true);
+      return;
+    }
     try {
       await apiFetch(`/companies/${company.id}`, { method: 'DELETE' });
       // Spec 2.8.4 — after a delete the user lands back on the list.
@@ -64,6 +72,16 @@ export default function CompanyDetailsPage({ params }: { params: { id: string } 
       setConfirmingDelete(false);
       setError(err instanceof ApiError ? err.message : 'We could not delete this company.');
     }
+  }
+
+  function requestDelete() {
+    setError(null);
+    if (locationCount && locationCount > 0) {
+      setLocationDeleteWarning(true);
+      return;
+    }
+    setLocationDeleteWarning(false);
+    setConfirmingDelete(true);
   }
 
   if (loading) {
@@ -109,17 +127,20 @@ export default function CompanyDetailsPage({ params }: { params: { id: string } 
           <Link className="btn btn--ghost" href={`/companies/${company.id}/edit`}>
             Edit
           </Link>
-          <button
-            type="button"
-            className="btn btn--danger"
-            onClick={() => setConfirmingDelete(true)}
-          >
+          <button type="button" className="btn btn--danger" onClick={requestDelete}>
             Delete
           </button>
         </div>
       </header>
 
       {error && <Banner kind="error">{error}</Banner>}
+
+      {locationDeleteWarning && (
+        <Banner kind="error">
+          This company cannot be deleted while associated locations remain. Remove the location
+          associations before deleting this company.
+        </Banner>
+      )}
 
       {confirmingDelete && (
         <div
@@ -160,6 +181,8 @@ export default function CompanyDetailsPage({ params }: { params: { id: string } 
       >
         <AddressDetail address={company.shippingAddress} />
       </Section>
+
+      <CompanyLocations companyId={company.id} onLocationsLoaded={setLocationCount} />
 
       {/* Spec 2.2.9 — audit information on every record. */}
       <Section title="Audit">
