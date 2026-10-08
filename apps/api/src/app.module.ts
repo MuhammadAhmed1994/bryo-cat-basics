@@ -7,6 +7,7 @@ import { ENTITIES } from './database/data-source';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { CompaniesModule } from './companies/companies.module';
+import { LocationsModule } from './locations/locations.module';
 import { MailModule } from './mail/mail.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 
@@ -29,6 +30,8 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
     AuthModule,
     UsersModule,
     CompaniesModule,
+    // Registers Location routes and its Company-reference usage checker.
+    LocationsModule,
   ],
   // Spec 2.1.4 — everything is protected unless explicitly marked @Public().
   providers: [{ provide: APP_GUARD, useClass: JwtAuthGuard }],
