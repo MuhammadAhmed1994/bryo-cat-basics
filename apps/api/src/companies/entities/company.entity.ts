@@ -1,5 +1,15 @@
-import { Column, Entity, Index } from 'typeorm';
-import { AuditedEntity } from '../../common/entities/audited.entity';
+import { randomUUID } from 'crypto';
+import {
+  BeforeInsert,
+  Column,
+  CreateDateColumn,
+  Entity,
+  Index,
+  OneToMany,
+  PrimaryColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { Location } from '../../locations/entities/location.entity';
 
 /** Spec 2.8.1 — billing and shipping share the same shape and validations. */
 export class Address {
@@ -23,7 +33,22 @@ export class Address {
 }
 
 @Entity('companies')
-export class Company extends AuditedEntity {
+export class Company {
+  @PrimaryColumn({ type: 'varchar', length: 36 })
+  id!: string;
+
+  @CreateDateColumn({ type: 'timestamptz' })
+  createdAt!: Date;
+
+  @UpdateDateColumn({ type: 'timestamptz' })
+  updatedAt!: Date;
+
+  @Column({ type: 'uuid', nullable: true })
+  createdById!: string | null;
+
+  @Column({ type: 'uuid', nullable: true })
+  updatedById!: string | null;
+
   @Column({ type: 'varchar', length: 100 })
   name!: string;
 
@@ -56,4 +81,13 @@ export class Company extends AuditedEntity {
   /** Spec 2.8.5 — new companies are Active; deactivation hides them from new transactions. */
   @Column({ type: 'boolean', default: true })
   isActive!: boolean;
+
+  @OneToMany(() => Location, (location) => location.company)
+  locations!: Location[];
+
+  /** Company IDs are stored as strings so they can be Location foreign keys. */
+  @BeforeInsert()
+  generateId(): void {
+    this.id ??= `c${randomUUID().replace(/-/g, '')}`;
+  }
 }
