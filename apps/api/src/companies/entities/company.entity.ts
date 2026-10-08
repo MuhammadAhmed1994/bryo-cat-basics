@@ -1,5 +1,13 @@
-import { Column, Entity, Index } from 'typeorm';
-import { AuditedEntity } from '../../common/entities/audited.entity';
+import { randomBytes } from 'crypto';
+import {
+  BeforeInsert,
+  Column,
+  CreateDateColumn,
+  Entity,
+  Index,
+  PrimaryColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 /** Spec 2.8.1 — billing and shipping share the same shape and validations. */
 export class Address {
@@ -23,7 +31,22 @@ export class Address {
 }
 
 @Entity('companies')
-export class Company extends AuditedEntity {
+export class Company {
+  @PrimaryColumn({ type: 'varchar', length: 25 })
+  id!: string;
+
+  @CreateDateColumn({ type: 'timestamptz' })
+  createdAt!: Date;
+
+  @UpdateDateColumn({ type: 'timestamptz' })
+  updatedAt!: Date;
+
+  @Column({ type: 'uuid', nullable: true })
+  createdById!: string | null;
+
+  @Column({ type: 'uuid', nullable: true })
+  updatedById!: string | null;
+
   @Column({ type: 'varchar', length: 100 })
   name!: string;
 
@@ -56,4 +79,12 @@ export class Company extends AuditedEntity {
   /** Spec 2.8.5 — new companies are Active; deactivation hides them from new transactions. */
   @Column({ type: 'boolean', default: true })
   isActive!: boolean;
+
+  @BeforeInsert()
+  assignId(): void {
+    if (!this.id) {
+      const timestamp = Date.now().toString(36).padStart(8, '0');
+      this.id = `c${timestamp}${randomBytes(12).toString('hex').slice(0, 16)}`;
+    }
+  }
 }
